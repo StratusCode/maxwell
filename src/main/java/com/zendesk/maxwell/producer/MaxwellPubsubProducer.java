@@ -21,6 +21,8 @@ import com.google.pubsub.v1.PubsubMessage;
 import com.zendesk.maxwell.MaxwellContext;
 import com.zendesk.maxwell.monitoring.Metrics;
 import com.zendesk.maxwell.replication.Position;
+import com.zendesk.maxwell.row.FieldNameStrategy;
+import com.zendesk.maxwell.row.FieldNames;
 import com.zendesk.maxwell.row.RowMap;
 import com.zendesk.maxwell.schema.ddl.DDLMap;
 import com.zendesk.maxwell.util.StoppableTask;
@@ -34,6 +36,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeoutException;
 
@@ -230,6 +234,17 @@ class MaxwellPubsubProducerWorker
     }
   }
 
+  public Map<String, String> getPubSubMessageAttributes(RowMap r) throws Exception {
+    FieldNameStrategy fieldNameStrategy = new FieldNameStrategy(outputConfig.namingStrategy);
+    HashMap<String, String> ret = new HashMap<>();
+
+    ret.put(fieldNameStrategy.apply(FieldNames.DATABASE), r.getDatabase());
+    ret.put(fieldNameStrategy.apply(FieldNames.TABLE), r.getTable());
+    ret.put(fieldNameStrategy.apply(FieldNames.TYPE), r.getRowType());
+
+    return ret;
+  }
+
   @Override
   public void sendAsync(RowMap r, AbstractAsyncProducer.CallbackCompleter cc)
       throws Exception {
@@ -243,6 +258,11 @@ class MaxwellPubsubProducerWorker
     } else {
       LOGGER.debug("using no message ordering key");
     }
+
+    for (Map.Entry<String, String> entry : getPubSubMessageAttributes(r).entrySet()) {
+      pubsubMessageBuilder.putAttributes(entry.getKey(), entry.getValue());
+    }
+
     PubsubMessage pubsubMessage = pubsubMessageBuilder.build();
 
     if ( r instanceof DDLMap ) {
