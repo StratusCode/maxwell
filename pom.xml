@@ -47,6 +47,9 @@
     <jackson.version>2.15.2</jackson.version>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
+    <gcp.projectId>stunning-base-208718</gcp.projectId>
+    <!-- latest as of 2023-10-25 -->
+    <distroless.baseImage.sha256>9dc7160ce10adeb253d9abb6ba6da9e298a0724318df06d616096a06bf08e500</distroless.baseImage.sha256>
   </properties>
 
   <profiles>
@@ -425,8 +428,9 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.2.1</version>
         <configuration>
-          <!-- Allow Mockito to access the test classe private variables -->
+          <!-- Allow Mockito to access the test classes private variables -->
           <argLine>--add-opens java.base/java.util=ALL-UNNAMED</argLine>
         </configuration>
       </plugin>
@@ -557,6 +561,47 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>pl.project13.maven</groupId>
+        <artifactId>git-commit-id-plugin</artifactId>
+        <version>4.0.0</version>
+        <executions>
+          <execution>
+            <id>get-the-git-infos</id>
+            <goals>
+              <goal>revision</goal>
+            </goals>
+            <phase>initialize</phase>
+          </execution>
+        </executions>
+        <configuration>
+          <generateGitPropertiesFile>true</generateGitPropertiesFile>
+          <commitIdGenerationMode>abbrev</commitIdGenerationMode>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>com.google.cloud.tools</groupId>
+        <artifactId>jib-maven-plugin</artifactId>
+        <version>3.4.0</version>
+        <configuration>
+          <platform>
+            <architecture>amd64</architecture>
+            <os>linux</os>
+          </platform>
+          <to>
+            <image>us.gcr.io/${gcp.projectId}/maxwell/daemon:${git.commit.id.abbrev}</image>
+          </to>
+          <from>
+            <image>gcr.io/distroless/java11-debian11@sha256:${distroless.baseImage.sha256}</image>
+          </from>
+          <container>
+            <mainClass>com.zendesk.maxwell.Maxwell</mainClass>
+            <user>65532</user>
+          </container>
+        </configuration>
       </plugin>
 
     </plugins>

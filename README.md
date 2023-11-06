@@ -31,3 +31,21 @@ __It goes like this:__
     "old": { "mycol":, 23, "daemon": "what once was" }
   }
 ```
+
+Publishing to Google Container Registry
+=======================================
+
+[jib](https://github.com/GoogleContainerTools/jib) is used to build the image.
+
+```bash
+make publish
+```
+
+Download half the internet and all the things should be built. Output should
+contain:
+
+```sh
+Built and pushed image as us.gcr.io/stunning-base-208718/maxwell-daemon:${GIT_COMMIT}
+```
+
+That is the container image. It should have already been pushed.
